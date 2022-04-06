@@ -6,7 +6,8 @@ from base.models import Course, Department, Faculty, School, Student, Units
 
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
-    list_display=['firstname','email','department','course']
+    list_display=['firstname','email','department','regNumber','school','faculty']
+    readonly_fields = ('regNumber','department','school','faculty',)
 
 
 @admin.register(School)
@@ -29,5 +30,5 @@ class CourseAdmin(admin.ModelAdmin):
 
 @admin.register(Units)
 class UnitAdmin(admin.ModelAdmin):
-    list_display=['unitName','unitCode']
+    list_display=['unitName','unitCode',]
 
