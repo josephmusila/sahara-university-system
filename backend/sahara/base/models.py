@@ -1,3 +1,4 @@
+from calendar import TUESDAY, WEDNESDAY
 from sqlite3 import Date
 from django.db import models
 from django.utils.text import slugify 
@@ -44,9 +45,12 @@ class Course(models.Model):
         return f'{self.courseName}'
 
 class Units(models.Model):
-    course=models.ManyToManyField(Course)
+    
     unitName=models.CharField(max_length=200)
     unitCode=models.CharField(max_length=8)
+
+    def __str__(self):
+        return f'{self.unitName}'
 
 
 class Lecturer(models.Model):
@@ -55,7 +59,11 @@ class Lecturer(models.Model):
     surname=models.CharField(max_length=50)
     idnumber=models.IntegerField(unique=True)
     dateOfBirth=models.DateTimeField()
-    department=models.ManyToManyField(Department)
+    department=models.ForeignKey(Department,on_delete=models.DO_NOTHING)
+
+    def __str__(self):
+        return f'{self.firstname}'
+
 
 class Student(models.Model):
 
@@ -73,7 +81,7 @@ class Student(models.Model):
     othername = models.CharField(max_length=50)
     surname = models.CharField(max_length=50)
     idnumber = models.IntegerField(unique=True)
-    dateOfBirth = models.DateTimeField()
+    dateOfBirth = models.DateField()
 
     email = models.EmailField(unique=True)
     residence = models.CharField(max_length=50)
@@ -108,4 +116,52 @@ post_save.connect(student_post_save,sender=Student)
 class Fees(models.Model):
     amount=models.DecimalField(max_digits=10,decimal_places=2)
     student=models.ForeignKey(Student,on_delete=models.DO_NOTHING)
+
+class Timetable(models.Model):
+    course=models.ForeignKey(Course,on_delete=models.CASCADE)
+
+
+class TimetableDay(models.Model):
+    MONDAY="MONDAY"
+    TUESDAY="TUESDAY"
+    WEDNESDAY="WEDNESDAY"
+    THURSDAY="THURSDAY"
+    FRIDAY="FRIDAY"
+    WEEKDAY_CHOICE=[
+        (MONDAY,"MONDAY"),
+        (TUESDAY,"TUESDAY"),
+        (WEDNESDAY,"WEDNESDAY"),
+        (THURSDAY,"THURSDAY"),
+        (FRIDAY,"FRIDAY"),
+    ]
+    day=models.CharField(max_length=10,choices=WEEKDAY_CHOICE,blank=False)
+    base=models.ForeignKey(Timetable,on_delete=models.DO_NOTHING)
+    
+
+class TimeTableEntity(models.Model):
+
+
+
+    TIMESLOT_1="7:00-9:00"
+    TIMESLOT_2="9:00-11:00"
+    TIMESLOT_3="11:00-1:00"
+    TIMESLOT_4="1:00-2:00"
+    TIMESLOT_5="2:00-4:00"
+    TIMESLOT_6="4:00-6:00"
+    TIMESLOT_CHOICE=[
+        (TIMESLOT_1,"7:00-9:00"),
+        (TIMESLOT_2,"9:00-11:00"),
+        (TIMESLOT_3,"11:00-1:00"),
+        (TIMESLOT_4,"1:00-2:00"),
+        (TIMESLOT_5,"2:00-4:00"),
+        (TIMESLOT_6,"4:00-6:00"),
+    ]
+    entity=models.ForeignKey(Timetable,on_delete=models.DO_NOTHING)
+    
+   
+    unit=models.ForeignKey(Units,on_delete=models.DO_NOTHING)
+    lecturer=models.ForeignKey(Lecturer,on_delete=models.DO_NOTHING)
+    time=models.CharField(max_length=20,choices=TIMESLOT_CHOICE)
+    room=models.CharField(max_length=10)
+    entity=models.ForeignKey(TimetableDay,on_delete=models.DO_NOTHING)
 
