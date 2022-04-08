@@ -1,4 +1,5 @@
 from calendar import TUESDAY, WEDNESDAY
+from dataclasses import fields
 from sqlite3 import Date
 from django.db import models
 from django.utils.text import slugify 
@@ -58,7 +59,7 @@ class Lecturer(models.Model):
     othername=models.CharField(max_length=50)
     surname=models.CharField(max_length=50)
     idnumber=models.IntegerField(unique=True)
-    dateOfBirth=models.DateTimeField()
+    dateOfBirth=models.DateField()
     department=models.ForeignKey(Department,on_delete=models.DO_NOTHING)
 
     def __str__(self):
@@ -75,14 +76,15 @@ class Student(models.Model):
         (FEMALE,"Female"),
         (OTHER,"Other")
     ]
+    
     id = models.AutoField(primary_key=True)
-    # registrationNumber=models.CharField(max_length=10)
-    firstname = models.CharField(max_length=50)
-    othername = models.CharField(max_length=50)
-    surname = models.CharField(max_length=50)
-    idnumber = models.IntegerField(unique=True)
+    
+    firstname = models.CharField(max_length=50,blank=False)
+    otherme = models.CharField(max_length=50,blank=False)
+    surname= models.CharField(max_length=50,blank=True)
+    idnumber = models.IntegerField(unique=True,blank=True)
     dateOfBirth = models.DateField()
-
+    password=models.IntegerField(default=12345678)
     email = models.EmailField(unique=True)
     residence = models.CharField(max_length=50)
     religion = models.CharField(max_length=50)
@@ -100,6 +102,7 @@ class Student(models.Model):
         self.department=self.course.department
         self.school=self.course.department.school
         self.faculty=self.course.department.school.faculty
+        self.password=self.idnumber
         super().save(*args, **kwargs)
 
        
@@ -112,13 +115,15 @@ def student_post_save(sender,instance,created, *args,**kwargs):
 
 post_save.connect(student_post_save,sender=Student)
 
+
+
  
 class Fees(models.Model):
     amount=models.DecimalField(max_digits=10,decimal_places=2)
     student=models.ForeignKey(Student,on_delete=models.DO_NOTHING)
 
 class Timetable(models.Model):
-    course=models.ForeignKey(Course,on_delete=models.CASCADE)
+    course=models.ForeignKey(Course,on_delete=models.DO_NOTHING)
 
 
 class TimetableDay(models.Model):
@@ -164,4 +169,74 @@ class TimeTableEntity(models.Model):
     time=models.CharField(max_length=20,choices=TIMESLOT_CHOICE)
     room=models.CharField(max_length=10)
     entity=models.ForeignKey(TimetableDay,on_delete=models.DO_NOTHING)
+
+#support staff tables
+
+class StaffDepartment(models.Model):
+    department=models.CharField(max_length=100)
+    departmentId=models.CharField(max_length=5)
+
+
+class SupportStaff(models.Model):
+    MALE="M"
+    FEMALE="F"
+    OTHER="O"
+    GENDER_CHOICES=[
+        (MALE,"Male"),
+        (FEMALE,"Female"),
+        (OTHER,"Other")
+    ]
+    
+   
+    firstname = models.CharField(max_length=50,blank=False)
+    otherme = models.CharField(max_length=50,blank=False)
+    surname= models.CharField(max_length=50,blank=True)
+    idnumber = models.IntegerField(unique=True,blank=True)
+    dateOfBirth = models.DateField()
+    password=models.IntegerField(default=12345678)
+    email = models.EmailField(unique=True)
+    residence = models.CharField(max_length=50)
+    religion = models.CharField(max_length=50)
+    gender = models.CharField(max_length=1,choices=GENDER_CHOICES,default=OTHER)
+    avatar=models.CharField(max_length=200)
+    department=models.ForeignKey(StaffDepartment,on_delete=models.DO_NOTHING)
+
+
+#social media tables
+
+class Post(models.Model):
+    creator=models.ForeignKey(Student,on_delete=models.DO_NOTHING)
+    content=models.TextField(max_length=500)
+    image=models.ImageField()
+    created=models.DateTimeField(auto_now_add=True)
+    verified=models.BooleanField(default=False)
+    likes=models.IntegerField()
+    
+class Comment(models.Model):
+    commentedBy=models.ForeignKey(Student,on_delete=models.DO_NOTHING)
+    comment=models.TextField(max_length=200)
+    post=models.ForeignKey(Post,on_delete=models.CASCADE)
+    verified=models.BooleanField(default=False)
+
+
+#Library tables
+
+
+class Book(models.Model):
+    bookName=models.CharField(max_length=50)
+    bookSerialNumber=models.CharField(max_length=20)
+    publisher=models.CharField(max_length=50)
+    author=models.CharField(max_length=100)
+    yearOfPublish=models.DateField()
+
+
+class Library(models.Model):
+    student=models.ForeignKey(Student,on_delete=models.DO_NOTHING)
+    dateJoined=models.DateField(auto_now_add=True)
+    bookBorrowed=models.ForeignKey(Book,on_delete=models.DO_NOTHING)
+    dateOfReturn=models.DateField()
+    issuedBy=models.ForeignKey(SupportStaff,on_delete=models.DO_NOTHING)
+
+
+
 
