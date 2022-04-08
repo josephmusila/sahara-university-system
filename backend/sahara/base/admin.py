@@ -3,14 +3,14 @@ from django.contrib import admin
 from django.contrib.admin import TabularInline, StackedInline, site
 from super_inlines.admin import SuperInlineModelAdmin, SuperModelAdmin
 
-from base.models import Course, Department, Faculty, Lecturer, School, Student, TimeTableEntity, Timetable, TimetableDay, Units
+from base.models import Course, Department, Faculty, Lecturer, School, Student, SupportStaff, TimeTableEntity, Timetable, TimetableDay, Units
 
 # Register your models here.
 
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
     list_display=['firstname','surname','course','department','regNumber','school','faculty']
-    readonly_fields = ('regNumber','department','school','faculty',)
+    readonly_fields = ('regNumber','department','school','faculty','password',)
 
 
 @admin.register(School)
@@ -66,3 +66,8 @@ class TimeTableAdmin(SuperModelAdmin):
 class LectureAdmin(admin.ModelAdmin):
    
     list_display=['firstname','surname','department']
+
+
+@admin.register(SupportStaff)
+class SupportStaffAdmin(admin.ModelAdmin):
+    list_display=['firstname']
