@@ -26,7 +26,7 @@ class School(models.Model):
         return f'{self.schoolName}'
 
 class Department(models.Model):
-   
+    
     departmentName=models.CharField(max_length=200,null=False)
     school=models.ForeignKey(School,on_delete=models.DO_NOTHING)
 
@@ -118,9 +118,7 @@ post_save.connect(student_post_save,sender=Student)
 
 
  
-class Fees(models.Model):
-    amount=models.DecimalField(max_digits=10,decimal_places=2)
-    student=models.ForeignKey(Student,on_delete=models.DO_NOTHING)
+
 
 class Timetable(models.Model):
     course=models.ForeignKey(Course,on_delete=models.DO_NOTHING)
@@ -141,7 +139,9 @@ class TimetableDay(models.Model):
     ]
     day=models.CharField(max_length=10,choices=WEEKDAY_CHOICE,blank=False)
     base=models.ForeignKey(Timetable,on_delete=models.DO_NOTHING)
-    
+ 
+
+
 
 class TimeTableEntity(models.Model):
 
@@ -173,8 +173,22 @@ class TimeTableEntity(models.Model):
 #support staff tables
 
 class StaffDepartment(models.Model):
+
+    FINANCE="FINANCE"
+    CLEANING='CLEANING'
+    KITCHEN="KITCHEN"
+    TECHNICIAN="TECHNICIAN"
+    DRIVERS="DRIVERS"
+    HEALTH="HEALTH"
+    SECURITY="SECURITY"
+    RECEPTIONS="RECEPTIONS"
+    LIBRARY="LIBRARY"
+
+
+
+
     department=models.CharField(max_length=100)
-    departmentId=models.CharField(max_length=5)
+    departmentCode=models.CharField(max_length=5)
 
 
 class SupportStaff(models.Model):
@@ -240,3 +254,30 @@ class Library(models.Model):
 
 
 
+    
+class Fees(models.Model):
+
+    PAYMENT_METHOD_MOBILE="MOBILE"
+    PAYMENT_METHOD_CHEQUE='CHEQUE'
+    PAYMENT_METHOD_CASH="CASH"
+
+    PAYMENT_METHOD=[
+        (PAYMENT_METHOD_MOBILE,"MOBILE"),
+        (PAYMENT_METHOD_CHEQUE,"CHEQUE"),
+        (PAYMENT_METHOD_CASH,"CASH")
+    ]
+    amount=models.DecimalField(max_digits=10,decimal_places=2)
+    cashier=models.ForeignKey(SupportStaff,on_delete=models.DO_NOTHING,null=True)
+    student=models.ForeignKey(Student,on_delete=models.DO_NOTHING)   
+    paymentTime=models.DateTimeField(auto_now_add=True,null=True)
+    paymentMethod=models.CharField(max_length=20,choices=PAYMENT_METHOD,default=PAYMENT_METHOD_CHEQUE,null=False)
+    paymentCode=models.CharField(max_length=30)
+
+
+def fee_post_save(sender,instance,created,*args,**kwargs):
+    if(instance.paymentMethod==instance.PAYMENT_METHOD_MOBILE):
+        instance.paymentCode=f'MOB/{instance.student.regNumber}/{instance.paymentTime}'
+    if created:
+        instance.save()
+
+post_save.connect(fee_post_save,sender=Fees)

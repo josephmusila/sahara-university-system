@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.contrib.admin import TabularInline, StackedInline, site
 from super_inlines.admin import SuperInlineModelAdmin, SuperModelAdmin
 
-from base.models import Course, Department, Faculty, Lecturer, School, Student, SupportStaff, TimeTableEntity, Timetable, TimetableDay, Units
+from base.models import Course, Department, Faculty, Fees, Lecturer, School, Student, SupportStaff, TimeTableEntity, Timetable, TimetableDay, Units
 
 # Register your models here.
 
@@ -71,3 +71,8 @@ class LectureAdmin(admin.ModelAdmin):
 @admin.register(SupportStaff)
 class SupportStaffAdmin(admin.ModelAdmin):
     list_display=['firstname']
+
+@admin.register(Fees)
+class FeeAdmin(admin.ModelAdmin):
+    list_display=['paymentCode','amount','cashier','student','paymentMethod']
+    readonly_fields=('paymentCode',)
